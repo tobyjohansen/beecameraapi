@@ -5,6 +5,8 @@ import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from pythonping import ping
+
 app = FastAPI()
 
 
@@ -26,10 +28,22 @@ async def camera_setup(user_id: str, hive_id: str, ipadress: str):
     return {"UserID": user_id, "hive_id": hive_id, "camera_id": camera_id}
 
 
+def ping_ip(ip_adress):
+    try:
+        response = ping(ip_adress, count=1)
+        return response.rtt_avg_ms is not None
+    except:
+        return False
+
 @app.get("/V1/camera/status/")
 async def camera_status(hive_id: str):
-    # Return Json response
-    return {"hive_id": "Hive_ID", "status": "responsive"}
+    # Get camera status by pinging the camera
+
+    ip_adress = '8.8.8.9'
+    if ping_ip(ip_adress):
+        return {"hive_id": hive_id, "status": "responsive"}
+    else:
+        return {"hive_id": hive_id, "status": "unresponsive"}
 
 
 
